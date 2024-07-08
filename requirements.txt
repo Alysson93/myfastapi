@@ -1,0 +1,9 @@
+alembic
+fastapi
+pwdlib[argon2]
+pydantic-settings
+pyjwt
+python-multipart
+pytz
+sqlalchemy
+tzdata
