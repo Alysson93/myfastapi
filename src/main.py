@@ -7,14 +7,12 @@ from http import HTTPStatus
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from db import get_session
 from models import User
-from schemas import Token, UserRequest, UserResponse
-from security import get_password_hash, verify_password
+from schemas import UserRequest, UserResponse
 
 app = FastAPI()
 
@@ -36,7 +34,7 @@ def create_user(user: UserRequest, session: Session = Depends(get_session)):
     if result is None:
         new_user = User(
             username=user.username,
-            password=get_password_hash(user.password),
+            password=user.password,
             name=user.name,
             email=user.email,
             phone=user.phone,
@@ -80,7 +78,7 @@ def update_user(
     db_user = session.scalar(select(User).where(User.id == id))
     if db_user:
         db_user.email = user.email
-        db_user.password = get_password_hash(user.password)
+        db_user.password = user.password
         db_user.name = user.name
         db_user.email = user.email
         db_user.phone = user.phone
@@ -100,20 +98,6 @@ def delete_user(id: int, session: Session = Depends(get_session)):
     else:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='User not found'
-        )
-
-
-@app.post('/token', response_model=Token)
-def token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    session: Session = Depends(get_session),
-):
-    user = session.scalar(
-        select(User).where(User.username == form_data.username)
-    )
-    if not user or verify_password(form_data.password, user.password):
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST, detail='Invalid credentials'
         )
 
 
