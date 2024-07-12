@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from db import get_session
 from models import User
 from schemas import Token, UserRequest, UserResponse
-from security import get_password_hash, verify_password, create_access_token
+from security import create_access_token, get_password_hash, verify_password, get_current_user
 
 app = FastAPI()
 
@@ -56,7 +56,8 @@ def create_user(user: UserRequest, session: Session = Depends(get_session)):
 
 @app.get('/users/', response_model=list[UserResponse])
 def read_users(
-    limit: int = 10, offset: int = 0, session: Session = Depends(get_session)
+    limit: int = 10, offset: int = 0, session: Session = Depends(get_session),
+    current_user = Depends(get_current_user)
 ):
     users = session.scalars(select(User).limit(limit).offset(offset))
     return users

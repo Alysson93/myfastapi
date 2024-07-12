@@ -1,14 +1,14 @@
-## lint
-isort .
-blue .
+<h2>lint</h2>
+<p>isort .</p>
+<p>blue .</p>
 
-## test
-pytest
+<h2>test</h2>
+<p>pytest</p>
 
-## run
-python src/main.py
+<h2>run</h2>
+<p>python src/main.py</p>
 
-## alembic
-alembic init
-alembic revision --autogenerate -m "migration name"
-alembic upgrade head
+<h2>alembic</h2>
+<p>alembic init</p>
+<p>alembic revision --autogenerate -m "migration name"</p>
+<p>alembic upgrade head</p>

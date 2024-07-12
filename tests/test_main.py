@@ -111,11 +111,11 @@ def test_delete_user_not_found(client):
     response = client.delete('/users/1')
     assert response.status_code == HTTPStatus.NOT_FOUND
 
+
 def test_get_token(client, user):
-    response = client.post('/token/', data = {
-        'username': user.username,
-        'password': '123'
-    })
+    response = client.post(
+        '/token/', data={'username': user.username, 'password': '123'}
+    )
     token = response.json()
     assert response.status_code == HTTPStatus.OK
     assert token['token_type'] == 'Bearer'
