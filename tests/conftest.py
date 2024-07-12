@@ -12,6 +12,7 @@ from sqlalchemy.pool import StaticPool
 from db import get_session
 from main import app
 from models import User, table_registry
+from security import get_password_hash
 
 
 @fixture()
@@ -42,7 +43,7 @@ def client(session):
 def user(session):
     user = User(
         username='JohnDoe',
-        password='123',
+        password=get_password_hash('123'),
         name='John Doe',
         email='john@test.com',
         phone='81912345678',

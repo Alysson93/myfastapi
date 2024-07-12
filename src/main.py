@@ -13,8 +13,8 @@ from sqlalchemy.orm import Session
 
 from db import get_session
 from models import User
-from schemas import UserRequest, UserResponse
-from security import get_password_hash, verify_password
+from schemas import Token, UserRequest, UserResponse
+from security import get_password_hash, verify_password, create_access_token
 
 app = FastAPI()
 
@@ -103,7 +103,7 @@ def delete_user(id: int, session: Session = Depends(get_session)):
         )
 
 
-@app.post('/token/')
+@app.post('/token/', response_model=Token)
 def token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(get_session),
@@ -112,7 +112,8 @@ def token(
         select(User).where(User.username == form_data.username)
     )
     if user and verify_password(form_data.password, user.password):
-        pass
+        access_token = create_access_token({'sub': user.username})
+        return {'access_token': access_token, 'token_type': 'Bearer'}
     else:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST, detail='Invalid credentials'
