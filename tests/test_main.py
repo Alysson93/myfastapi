@@ -44,14 +44,15 @@ def test_create_user_already_exists(client, user):
     assert response.status_code == HTTPStatus.BAD_REQUEST
 
 
-def test_read_users(client):
-    response = client.get('/users/')
+def test_read_users(client, user, token):
+    response = client.get('/users/', headers={'Authorization': f'Bearer {token}'})
+    user_response = UserResponse.model_validate(user).model_dump()
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == []
+    assert response.json() == [user_response]
 
 
-def test_read_user_by_id(client, user):
-    response = client.get('/users/1')
+def test_read_user_by_id(client, user, token):
+    response = client.get(f'/users/{user.id}', headers={'Authorization': f'Bearer {token}'},)
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         'id': 1,
@@ -62,21 +63,16 @@ def test_read_user_by_id(client, user):
     }
 
 
-def test_read_user_by_id_not_found(client):
-    response = client.get('/users/1')
-    assert response.status_code == HTTPStatus.NOT_FOUND
+def test_read_user_by_id_not_found(client, token):
+    response = client.get('/users/2', headers={'Authorization': f'Bearer {token}'})
+    assert response.status_code == HTTPStatus.BAD_REQUEST
 
 
-def test_read_users_with_user(client, user):
-    response = client.get('/users/')
-    user_response = UserResponse.model_validate(user).model_dump()
-    assert response.status_code == HTTPStatus.OK
-    assert response.json() == [user_response]
 
-
-def test_update_user(client, user):
+def test_update_user(client, user, token):
     response = client.put(
-        '/users/1',
+        f'/users/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'JaneDoe',
             'password': '456',
@@ -88,9 +84,10 @@ def test_update_user(client, user):
     assert response.status_code == HTTPStatus.NO_CONTENT
 
 
-def test_update_user_not_found(client):
+def test_update_user_not_found(client, token):
     response = client.put(
-        '/users/1',
+        '/users/2',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'JaneDoe',
             'password': '456',
@@ -99,17 +96,19 @@ def test_update_user_not_found(client):
             'phone': '00912345678',
         },
     )
-    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.status_code == HTTPStatus.BAD_REQUEST
 
 
-def test_delete_user(client, user):
-    response = client.delete('/users/1')
+def test_delete_user(client, user, token):
+    response = client.delete(
+        f'/users/{user.id}', headers={'Authorization': f'Bearer {token}'}
+    )
     assert response.status_code == HTTPStatus.NO_CONTENT
 
 
-def test_delete_user_not_found(client):
-    response = client.delete('/users/1')
-    assert response.status_code == HTTPStatus.NOT_FOUND
+def test_delete_user_not_found(client, token):
+    response = client.delete('/users/2', headers={'Authorization': f'Bearer {token}'})
+    assert response.status_code == HTTPStatus.BAD_REQUEST
 
 
 def test_get_token(client, user):

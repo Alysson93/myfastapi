@@ -14,7 +14,12 @@ from sqlalchemy.orm import Session
 from db import get_session
 from models import User
 from schemas import Token, UserRequest, UserResponse
-from security import create_access_token, get_password_hash, verify_password, get_current_user
+from security import (
+    create_access_token,
+    get_current_user,
+    get_password_hash,
+    verify_password,
+)
 
 app = FastAPI()
 
@@ -56,52 +61,58 @@ def create_user(user: UserRequest, session: Session = Depends(get_session)):
 
 @app.get('/users/', response_model=list[UserResponse])
 def read_users(
-    limit: int = 10, offset: int = 0, session: Session = Depends(get_session),
-    current_user = Depends(get_current_user)
+    limit: int = 10,
+    offset: int = 0,
+    session: Session = Depends(get_session),
+    current_user=Depends(get_current_user),
 ):
     users = session.scalars(select(User).limit(limit).offset(offset))
     return users
 
 
 @app.get('/users/{id:int}', response_model=UserResponse)
-def read_user_by_id(id: int, session: Session = Depends(get_session)):
-    user = session.scalar(select(User).where(User.id == id))
-    if user:
-        return user
-    else:
+def read_user_by_id(
+    id: int,
+    current_user=Depends(get_current_user),
+):
+    if current_user.id != id:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User not found'
+            status_code=HTTPStatus.BAD_REQUEST, detail='Not enough permission'
         )
+    return current_user
 
 
 @app.put('/users/{id:int}', status_code=HTTPStatus.NO_CONTENT)
 def update_user(
-    id: int, user: UserRequest, session: Session = Depends(get_session)
+    id: int,
+    user: UserRequest,
+    session: Session = Depends(get_session),
+    current_user=Depends(get_current_user),
 ):
-    db_user = session.scalar(select(User).where(User.id == id))
-    if db_user:
-        db_user.username = user.username
-        db_user.password = get_password_hash(user.password)
-        db_user.name = user.name
-        db_user.email = user.email
-        db_user.phone = user.phone
-        session.commit()
-    else:
+    if current_user.id != id:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User not found'
+            status_code=HTTPStatus.BAD_REQUEST, detail='Not enough permission'
         )
+    current_user.username = user.username
+    current_user.password = get_password_hash(user.password)
+    current_user.name = user.name
+    current_user.email = user.email
+    current_user.phone = user.phone
+    session.commit()
 
 
 @app.delete('/users/{id:int}', status_code=HTTPStatus.NO_CONTENT)
-def delete_user(id: int, session: Session = Depends(get_session)):
-    db_user = session.scalar(select(User).where(User.id == id))
-    if db_user:
-        session.delete(db_user)
-        session.commit()
-    else:
+def delete_user(
+    id: int,
+    session: Session = Depends(get_session),
+    current_user=Depends(get_current_user),
+):
+    if current_user.id != id:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User not found'
+            status_code=HTTPStatus.BAD_REQUEST, detail='Not enough permission'
         )
+    session.delete(current_user)
+    session.commit()
 
 
 @app.post('/token/', response_model=Token)

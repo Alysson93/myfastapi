@@ -53,3 +53,11 @@ def user(session):
     session.refresh(user)
     user.clean_password = '123'
     return user
+
+
+@fixture
+def token(client, user):
+    response = client.post(
+        '/token/', data={'username': user.username, 'password': '123'}
+    )
+    return response.json()['access_token']
