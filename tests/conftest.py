@@ -58,6 +58,6 @@ def user(session):
 @fixture
 def token(client, user):
     response = client.post(
-        '/token/', data={'username': user.username, 'password': '123'}
+        '/auth/token/', data={'username': user.username, 'password': '123'}
     )
     return response.json()['access_token']
