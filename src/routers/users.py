@@ -61,7 +61,7 @@ def read_user_by_id(
 ):
     if current_user.id != id:
         raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST, detail='Not enough permission'
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permission'
         )
     return current_user
 
@@ -75,7 +75,7 @@ def update_user(
 ):
     if current_user.id != id:
         raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST, detail='Not enough permission'
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permission'
         )
     current_user.username = user.username
     current_user.password = get_password_hash(user.password)
@@ -93,7 +93,7 @@ def delete_user(
 ):
     if current_user.id != id:
         raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST, detail='Not enough permission'
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permission'
         )
     session.delete(current_user)
     session.commit()

@@ -66,7 +66,7 @@ def test_read_user_by_id_not_found(client, token):
     response = client.get(
         '/users/2', headers={'Authorization': f'Bearer {token}'}
     )
-    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.status_code == HTTPStatus.FORBIDDEN
 
 
 def test_update_user(client, user, token):
@@ -96,7 +96,7 @@ def test_update_user_not_found(client, token):
             'phone': '00912345678',
         },
     )
-    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.status_code == HTTPStatus.FORBIDDEN
 
 
 def test_delete_user(client, user, token):
@@ -110,4 +110,4 @@ def test_delete_user_not_found(client, token):
     response = client.delete(
         '/users/2', headers={'Authorization': f'Bearer {token}'}
     )
-    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.status_code == HTTPStatus.FORBIDDEN
