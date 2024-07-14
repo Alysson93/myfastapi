@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
@@ -10,10 +11,12 @@ from schemas import UserRequest, UserResponse
 from security import get_current_user, get_password_hash
 
 router = APIRouter(prefix='/users', tags=['users'])
+T_Session = Annotated[Session, Depends(get_session)]
+T_current_user = Annotated[User, Depends(get_current_user)]
 
 
 @router.post('/', status_code=HTTPStatus.CREATED, response_model=UserResponse)
-def create_user(user: UserRequest, session: Session = Depends(get_session)):
+def create_user(user: UserRequest, session: T_Session):
     result = session.scalar(
         select(User).where(
             User.username == user.username or User.email == user.email
@@ -42,10 +45,10 @@ def create_user(user: UserRequest, session: Session = Depends(get_session)):
 
 @router.get('/', response_model=list[UserResponse])
 def read_users(
+    session: T_Session,
+    current_user: T_current_user,
     limit: int = 10,
     offset: int = 0,
-    session: Session = Depends(get_session),
-    current_user=Depends(get_current_user),
 ):
     users = session.scalars(select(User).limit(limit).offset(offset))
     return users
@@ -54,7 +57,7 @@ def read_users(
 @router.get('/{id:int}', response_model=UserResponse)
 def read_user_by_id(
     id: int,
-    current_user=Depends(get_current_user),
+    current_user: T_current_user,
 ):
     if current_user.id != id:
         raise HTTPException(
@@ -67,8 +70,8 @@ def read_user_by_id(
 def update_user(
     id: int,
     user: UserRequest,
-    session: Session = Depends(get_session),
-    current_user=Depends(get_current_user),
+    session: T_Session,
+    current_user: T_current_user,
 ):
     if current_user.id != id:
         raise HTTPException(
@@ -85,8 +88,8 @@ def update_user(
 @router.delete('/{id:int}', status_code=HTTPStatus.NO_CONTENT)
 def delete_user(
     id: int,
-    session: Session = Depends(get_session),
-    current_user=Depends(get_current_user),
+    session: T_Session,
+    current_user: T_current_user,
 ):
     if current_user.id != id:
         raise HTTPException(
