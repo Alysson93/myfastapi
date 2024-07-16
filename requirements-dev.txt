@@ -1,3 +1,5 @@
 blue
+factory-boy
+freezegun
 isort
 pytest

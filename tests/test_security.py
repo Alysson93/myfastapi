@@ -1,6 +1,6 @@
 from jwt import decode
 
-from security import settings, create_access_token
+from security import create_access_token, settings
 
 
 def test_jwt():

@@ -3,6 +3,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../src')
 
+import factory
 from fastapi.testclient import TestClient
 from pytest import fixture
 from sqlalchemy import create_engine
@@ -41,13 +42,17 @@ def client(session):
 
 @fixture()
 def user(session):
-    user = User(
-        username='JohnDoe',
-        password=get_password_hash('123'),
-        name='John Doe',
-        email='john@test.com',
-        phone='81912345678',
-    )
+    user = UserFactory(password=get_password_hash('123'))
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    user.clean_password = '123'
+    return user
+
+
+@fixture
+def other_user(session):
+    user = UserFactory(password=get_password_hash('123'))
     session.add(user)
     session.commit()
     session.refresh(user)
@@ -61,3 +66,14 @@ def token(client, user):
         '/auth/token/', data={'username': user.username, 'password': '123'}
     )
     return response.json()['access_token']
+
+
+class UserFactory(factory.Factory):
+    class Meta:
+        model = User
+
+    username = factory.Sequence(lambda n: f'test{n}')
+    password = factory.LazyAttribute(lambda obj: f'pass{obj.username}')
+    name = factory.LazyAttribute(lambda obj: f'name{obj.username}')
+    email = factory.Sequence(lambda n: f'{n}@test.com')
+    phone = factory.LazyAttribute(lambda obj: f'(11){obj.username}')

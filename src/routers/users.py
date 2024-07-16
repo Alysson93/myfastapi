@@ -19,9 +19,10 @@ T_current_user = Annotated[User, Depends(get_current_user)]
 def create_user(user: UserRequest, session: T_Session):
     result = session.scalar(
         select(User).where(
-            User.username == user.username or User.email == user.email
+            (User.username == user.username) | (User.email == user.email)
         )
     )
+    print('olá', result)
     if result is None:
         new_user = User(
             username=user.username,
