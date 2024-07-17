@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from db import get_session
 from models import User
 from schemas import Token
-from security import create_access_token, verify_password
+from security import create_access_token, verify_password, get_current_user
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 T_Session = Annotated[Session, Depends(get_session)]
@@ -29,3 +29,9 @@ def token(
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST, detail='Invalid credentials'
         )
+
+
+@router.post('/refresh-token', response_model=Token)
+def refresh_token(user: User = Depends(get_current_user)):
+    new_access_token = create_access_token(data={'sub': user.username})
+    return {'access_token': new_access_token, 'token_type': 'bearer'}
