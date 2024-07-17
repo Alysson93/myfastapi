@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../src')
 import uvicorn
 from fastapi import FastAPI
 
-from routers import auth, users
+from routers import auth, users, todos
 
 app = FastAPI()
 
@@ -18,6 +18,7 @@ def root():
 
 app.include_router(users.router)
 app.include_router(auth.router)
+app.include_router(todos.router)
 
 
 if __name__ == '__main__':
